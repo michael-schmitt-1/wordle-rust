@@ -1,5 +1,3 @@
-pub mod word_list;
-
 pub fn get_words() -> [&'static str; 14855] {
     [
         "aahed", "aalii", "aapas", "aargh", "aarti", "abaca", "abaci", "aback", "abacs", "abaft",
