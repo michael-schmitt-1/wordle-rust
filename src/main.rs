@@ -57,12 +57,12 @@ fn main() -> Result<()> {
                 match key.code {
                     KeyCode::Char(c) => {
                         // Todo use solution
-                        if input.len() < 5 && c.is_ascii() && c.is_alphabetic(){
+                        if input.len() < 5 && c.is_ascii() && c.is_alphabetic() {
                             input.push(c.to_ascii_lowercase())
                         }
                     }
                     KeyCode::Enter => {
-                        if input.len() <5 { continue; }
+                        if input.len() < 5 { continue; }
 
                         let elements = game_logic::check_word(
                             input.to_string(),
