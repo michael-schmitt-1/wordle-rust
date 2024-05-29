@@ -39,3 +39,10 @@ fn main() -> Result<()> {
     disable_raw_mode()?;
     Ok(())
 }
+
+use rand::Rng;
+
+fn rand_from_array(array: &[&str]) -> String{
+    let random = rand::thread_rng().gen_range(0..array.len());
+    array[random].to_string()
+}
