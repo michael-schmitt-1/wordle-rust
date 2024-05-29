@@ -20,10 +20,7 @@ fn main() -> Result<()> {
     loop {
         terminal.draw(|frame| {
             let area = frame.size();
-            frame.render_widget(
-                Paragraph::new("Hello Ratatui! (press 'q' to quit)"),
-                area,
-            );
+            frame.render_widget(Paragraph::new("Hello Ratatui! (press 'q' to quit)"), area);
         })?;
 
         if event::poll(std::time::Duration::from_millis(16))? {
