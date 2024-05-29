@@ -9,6 +9,7 @@ use rand::Rng;
 use ratatui::{
     layout::{Constraint, Direction, Layout}, prelude::{CrosstermBackend, Terminal}, style::Style, text::Span, widgets::Paragraph,
 };
+use ratatui::style::Color;
 use ratatui::text::Line;
 
 use crate::game_logic::Element;
@@ -27,14 +28,24 @@ fn main() -> Result<()> {
 
     loop {
         terminal.draw(|frame| {
-            let layout = Layout::default()
-                .direction(Direction::Vertical)
-                .constraints(vec![Constraint::Min(6), Constraint::Max(1)])
+            let hor = Layout::default()
+                .direction(Direction::Horizontal)
+                .constraints([
+                    Constraint::Percentage(30),
+                    Constraint::Percentage(40),
+                    Constraint::Percentage(30),
+                ])
                 .split(frame.size());
 
+            let vertical = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints(vec![Constraint::Max(1), Constraint::Max(1), Constraint::Min(6), Constraint::Max(1)])
+                .split(hor[1]);
+
             let _area = frame.size();
-            frame.render_widget(Paragraph::new(text_list.clone()), layout[0]);
-            frame.render_widget(Paragraph::new(input.to_uppercase().clone()), layout[1]);
+            frame.render_widget(Paragraph::new("WORDLE").centered().style(Style::new().bg(Color::Green)), vertical[0]);
+            frame.render_widget(Paragraph::new(text_list.clone()).centered(), vertical[2]);
+            frame.render_widget(Paragraph::new(input.to_uppercase().clone()).centered(), vertical[3]);
         })?;
 
         if event::poll(std::time::Duration::from_millis(16))? {
