@@ -1,16 +1,20 @@
-mod word_list;
+use std::io::{Result, stdout};
 
 use crossterm::{
     event::{self, KeyCode, KeyEventKind},
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
+use rand::Rng;
 use ratatui::{
-    layout::{Constraint, Direction, Layout},
-    prelude::{CrosstermBackend, Terminal},
-    widgets::Paragraph,
+    layout::{Constraint, Direction, Layout}, prelude::{CrosstermBackend, Terminal}, style::Style, text::Span, widgets::Paragraph,
 };
-use std::io::{stdout, Result};
+use ratatui::text::Line;
+
+use crate::game_logic::Element;
+
+mod word_list;
+mod game_logic;
 
 fn main() -> Result<()> {
     stdout().execute(EnterAlternateScreen)?;
@@ -18,8 +22,8 @@ fn main() -> Result<()> {
     let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
     terminal.clear()?;
 
-    let mut text_list: String = "".to_string();
     let mut input: String = "".to_string();
+    let mut text_list: Vec<Line> = vec![];
 
     loop {
         terminal.draw(|frame| {
@@ -30,21 +34,37 @@ fn main() -> Result<()> {
 
             let _area = frame.size();
             frame.render_widget(Paragraph::new(text_list.clone()), layout[0]);
-            frame.render_widget(Paragraph::new(input.clone()), layout[1]);
+            frame.render_widget(Paragraph::new(input.to_uppercase().clone()), layout[1]);
         })?;
 
         if event::poll(std::time::Duration::from_millis(16))? {
             if let event::Event::Key(key) = event::read()? {
-                if key.kind == KeyEventKind::Press && key.code == KeyCode::Char('q') {
+                if key.kind == KeyEventKind::Press && key.code == KeyCode::Esc {
                     break;
                 }
 
                 match key.code {
-                    KeyCode::Char(c) => input.push(c),
+                    KeyCode::Char(c) => {
+                        // Todo use solution
+                        if input.len() < 5 && c.is_ascii() && c.is_alphabetic(){
+                            input.push(c.to_ascii_lowercase())
+                        }
+                    }
                     KeyCode::Enter => {
-                        text_list.push_str(&input.clone());
-                        text_list.push('\n');
+                        if input.len() <5 { continue; }
+
+                        let elements = game_logic::check_word(
+                            input.to_string(),
+                            "testi".to_string(),
+                        );
+                        text_list.push(list_to_span(&elements));
+
                         input = "".to_string();
+                    }
+                    KeyCode::Backspace => {
+                        if !input.is_empty() {
+                            input.remove(input.len() - 1);
+                        }
                     }
                     _ => continue,
                 }
@@ -57,9 +77,16 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-use rand::Rng;
+fn list_to_span(elements: &[Element]) -> Line<'static> {
+    let mut styled_chars: Vec<Span> = elements.iter()
+        .map(|e| Span::styled(e.c.to_string().to_uppercase(), Style::default().fg(e.status.color())))
+        .collect();
+    styled_chars.push(Span::styled("\n".to_string(), Style::default()));
 
-fn rand_from_array(array: &[&str]) -> String{
+    Line::from(styled_chars)
+}
+
+fn rand_from_array(array: &[&str]) -> String {
     let random = rand::thread_rng().gen_range(0..array.len());
     array[random].to_string()
 }
