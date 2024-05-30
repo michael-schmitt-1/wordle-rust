@@ -42,17 +42,17 @@ fn main() -> Result<()> {
 
             let left_area = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints(vec![Constraint::Max(1)])
+                .constraints([Constraint::Max(1), Constraint::Max(1), Constraint::Min(6), Constraint::Max(1)])
                 .split(hor[0]);
 
             let mid_area = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints(vec![Constraint::Max(1), Constraint::Max(1), Constraint::Min(6), Constraint::Max(1)])
+                .constraints([Constraint::Max(1), Constraint::Max(1), Constraint::Min(6), Constraint::Max(1)])
                 .split(hor[1]);
 
             let right_area = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints(vec![Constraint::Max(1)])
+                .constraints([Constraint::Max(1), Constraint::Max(1), Constraint::Min(6), Constraint::Max(1)])
                 .split(hor[2]);
 
             let _area = frame.size();
@@ -84,7 +84,12 @@ fn main() -> Result<()> {
                     frame.render_widget(Paragraph::new(not_started_text).wrap(Wrap::default()).centered(), mid_area[2]);
                 }
             };
-            frame.render_widget(Paragraph::new(input.to_uppercase().clone()).centered(), mid_area[3]);
+
+            // Footer
+            let input_prompt: String = format!("Input: {}{}", input.to_uppercase().clone(), "_".repeat(5 - input.len()));
+            frame.render_widget(Paragraph::new("").centered(), left_area[3]);
+            frame.render_widget(Paragraph::new(input_prompt).centered(), mid_area[3]);
+            frame.render_widget(Paragraph::new("").centered(), right_area[3]);
         })?;
 
         if event::poll(std::time::Duration::from_millis(16))? {
