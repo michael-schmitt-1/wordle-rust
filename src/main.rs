@@ -1,4 +1,4 @@
-use std::io::{stdout, Result};
+use std::io::{Result, stdout};
 
 use crossterm::{
     event::{self, KeyCode, KeyEventKind},
@@ -18,6 +18,7 @@ use ratatui::{
 };
 
 use crate::game_logic::Element;
+use crate::word_list::WORD_LIST;
 
 mod game_logic;
 mod word_list;
@@ -31,7 +32,7 @@ fn main() -> Result<()> {
     let mut input: String = "".to_string();
     let mut text_list: Vec<Line> = vec![];
     let mut game_state = GameState::NotStarted;
-    let solution = "testi";
+    let mut solution = rand_from_array(&WORD_LIST);
 
     loop {
         terminal.draw(|frame| {
@@ -125,6 +126,10 @@ fn main() -> Result<()> {
                         mid_area[2],
                     );
                 }
+                GameState::WrongWord => {
+                    let wrong_word_text = "The Word was not valid¸\n Please enter a valid word";
+                    frame.render_widget(Paragraph::new(wrong_word_text).centered(), mid_area[2]);
+                }
             };
             // Footer
             let input_prompt: String = format!(
@@ -149,33 +154,36 @@ fn main() -> Result<()> {
 
                 match key.code {
                     KeyCode::Char(c) => {
-                        // Todo use solution
                         if input.len() < 5 && c.is_ascii() && c.is_alphabetic() {
                             input.push(c.to_ascii_lowercase())
                         }
                     }
                     KeyCode::Enter => {
-                        if game_state != GameState::Running {
+                        if game_state == GameState::Won || game_state == GameState::Lost {
                             game_state = GameState::Running;
                             text_list = vec![];
                             input = "".to_string();
+                            solution = rand_from_array(&WORD_LIST)
                         }
-                        if input.len() < 5 {
-                            continue;
-                        }
+                        else if WORD_LIST.contains(&input.as_str()) {
+                            if game_state == GameState::WrongWord {
+                                game_state = GameState::Running;
+                            }
+                            if input.len() < 5 { continue; }
 
-                        let elements =
-                            game_logic::check_word(input.to_string(), solution.to_string());
-                        text_list.push(list_to_span(&elements));
+                            let elements = game_logic::check_word(
+                                input.to_string(),
+                                solution.to_string(),
+                            );
+                            text_list.push(list_to_span(&elements));
 
-                        if input == solution {
-                            game_state = GameState::Won
+                            if input == solution { game_state = GameState::Won }
+                            if text_list.len() > 5 { game_state = GameState::Lost }
+                            input = "".to_string();
+                        } else {
+                            game_state = GameState::WrongWord;
+                            input = "".to_string();
                         }
-                        if text_list.len() > 5 {
-                            game_state = GameState::Lost
-                        }
-
-                        input = "".to_string();
                     }
                     KeyCode::Backspace => {
                         if !input.is_empty() {
@@ -197,6 +205,7 @@ fn main() -> Result<()> {
 enum GameState {
     NotStarted,
     Running,
+    WrongWord,
     Won,
     Lost,
 }
