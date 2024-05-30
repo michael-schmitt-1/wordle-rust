@@ -5,6 +5,7 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
 };
+use crossterm::event::KeyModifiers;
 use rand::Rng;
 use ratatui::style::Color;
 use ratatui::text::Line;
@@ -154,6 +155,10 @@ fn main() -> Result<()> {
 
                 match key.code {
                     KeyCode::Char(c) => {
+                        if key.modifiers.contains(KeyModifiers::CONTROL) {
+                            break;
+                        }
+
                         if input.len() < 5 && c.is_ascii() && c.is_alphabetic() {
                             input.push(c.to_ascii_lowercase())
                         }
