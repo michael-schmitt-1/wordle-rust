@@ -11,6 +11,7 @@ use ratatui::{
 };
 use ratatui::style::Color;
 use ratatui::text::Line;
+use ratatui::widgets::Wrap;
 
 use crate::game_logic::Element;
 
@@ -74,8 +75,13 @@ fn main() -> Result<()> {
                     frame.render_widget(Paragraph::new(losing_text).centered(), mid_area[2]);
                 }
                 GameState::NotStarted => {
-                    let not_started_text = "Type to enter words.\nPress ESC to exit.\nPress Enter to submit the typed word.";
-                    frame.render_widget(Paragraph::new(not_started_text).centered(), mid_area[2]);
+                    let not_started_text =
+                        "Type 5-character-words and press ENTER to submit them.\n\n\
+                        You have 6 tries to guess the correct word.\n\n\
+                        Green means the letter is at the right place.\n\n\
+                        Yellow means the letter is in the word but not in the right place.\n\n\
+                        Press ESC to exit.";
+                    frame.render_widget(Paragraph::new(not_started_text).wrap(Wrap::default()).centered(), mid_area[2]);
                 }
             };
             frame.render_widget(Paragraph::new(input.to_uppercase().clone()).centered(), mid_area[3]);
