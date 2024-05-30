@@ -25,6 +25,8 @@ fn main() -> Result<()> {
 
     let mut input: String = "".to_string();
     let mut text_list: Vec<Line> = vec![];
+    let mut game_state = GameState::NotStarted;
+    let solution = "testi";
 
     loop {
         terminal.draw(|frame| {
@@ -43,8 +45,24 @@ fn main() -> Result<()> {
                 .split(hor[1]);
 
             let _area = frame.size();
+
             frame.render_widget(Paragraph::new("WORDLE").centered().style(Style::new().bg(Color::Green)), vertical[0]);
-            frame.render_widget(Paragraph::new(text_list.clone()).centered(), vertical[2]);
+            match game_state {
+                GameState::Running =>
+                    frame.render_widget(Paragraph::new(text_list.clone()).centered(), vertical[2]),
+                GameState::Won => {
+                    let winning_text = format!("YOU'VE WON!\nThe word was: {}\nPress Enter to restart.", solution.to_uppercase());
+                    frame.render_widget(Paragraph::new(winning_text).centered(), vertical[2]);
+                }
+                GameState::Lost => {
+                    let losing_text = format!("YOU'VE LOST!\nThe word was: {}\nPress Enter to restart.", solution.to_uppercase());
+                    frame.render_widget(Paragraph::new(losing_text).centered(), vertical[2]);
+                }
+                GameState::NotStarted => {
+                    let not_started_text = "Type to enter words.\nPress ESC to exit.\nPress Enter to submit the typed word.";
+                    frame.render_widget(Paragraph::new(not_started_text).centered(), vertical[2]);
+                }
+            };
             frame.render_widget(Paragraph::new(input.to_uppercase().clone()).centered(), vertical[3]);
         })?;
 
@@ -52,6 +70,10 @@ fn main() -> Result<()> {
             if let event::Event::Key(key) = event::read()? {
                 if key.kind == KeyEventKind::Press && key.code == KeyCode::Esc {
                     break;
+                }
+
+                if game_state == GameState::NotStarted {
+                    game_state = GameState::Running
                 }
 
                 match key.code {
@@ -62,13 +84,21 @@ fn main() -> Result<()> {
                         }
                     }
                     KeyCode::Enter => {
+                        if game_state != GameState::Running {
+                            game_state = GameState::Running;
+                            text_list = vec![];
+                            input = "".to_string();
+                        }
                         if input.len() < 5 { continue; }
 
                         let elements = game_logic::check_word(
                             input.to_string(),
-                            "testi".to_string(),
+                            solution.to_string(),
                         );
                         text_list.push(list_to_span(&elements));
+
+                        if input == solution { game_state = GameState::Won }
+                        if text_list.len() > 5 { game_state = GameState::Lost }
 
                         input = "".to_string();
                     }
@@ -86,6 +116,14 @@ fn main() -> Result<()> {
     stdout().execute(LeaveAlternateScreen)?;
     disable_raw_mode()?;
     Ok(())
+}
+
+#[derive(PartialEq, Debug, Clone)]
+enum GameState {
+    NotStarted,
+    Running,
+    Won,
+    Lost,
 }
 
 fn list_to_span(elements: &[Element]) -> Line<'static> {
