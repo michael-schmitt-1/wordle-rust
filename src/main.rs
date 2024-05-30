@@ -39,31 +39,46 @@ fn main() -> Result<()> {
                 ])
                 .split(frame.size());
 
-            let vertical = Layout::default()
+            let left_area = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints(vec![Constraint::Max(1)])
+                .split(hor[0]);
+
+            let mid_area = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints(vec![Constraint::Max(1), Constraint::Max(1), Constraint::Min(6), Constraint::Max(1)])
                 .split(hor[1]);
 
+            let right_area = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints(vec![Constraint::Max(1)])
+                .split(hor[2]);
+
             let _area = frame.size();
 
-            frame.render_widget(Paragraph::new("WORDLE").centered().style(Style::new().bg(Color::Green)), vertical[0]);
+            // Header
+            frame.render_widget(Paragraph::new("").style(Style::new().bg(Color::Green)), left_area[0]);
+            frame.render_widget(Paragraph::new("").style(Style::new().bg(Color::Green)), right_area[0]);
+            frame.render_widget(Paragraph::new("WORDLE").centered().style(Style::new().bg(Color::Green)), mid_area[0]);
+
+            // Body
             match game_state {
                 GameState::Running =>
-                    frame.render_widget(Paragraph::new(text_list.clone()).centered(), vertical[2]),
+                    frame.render_widget(Paragraph::new(text_list.clone()).centered(), mid_area[2]),
                 GameState::Won => {
                     let winning_text = format!("YOU'VE WON!\nThe word was: {}\nPress Enter to restart.", solution.to_uppercase());
-                    frame.render_widget(Paragraph::new(winning_text).centered(), vertical[2]);
+                    frame.render_widget(Paragraph::new(winning_text).centered(), mid_area[2]);
                 }
                 GameState::Lost => {
                     let losing_text = format!("YOU'VE LOST!\nThe word was: {}\nPress Enter to restart.", solution.to_uppercase());
-                    frame.render_widget(Paragraph::new(losing_text).centered(), vertical[2]);
+                    frame.render_widget(Paragraph::new(losing_text).centered(), mid_area[2]);
                 }
                 GameState::NotStarted => {
                     let not_started_text = "Type to enter words.\nPress ESC to exit.\nPress Enter to submit the typed word.";
-                    frame.render_widget(Paragraph::new(not_started_text).centered(), vertical[2]);
+                    frame.render_widget(Paragraph::new(not_started_text).centered(), mid_area[2]);
                 }
             };
-            frame.render_widget(Paragraph::new(input.to_uppercase().clone()).centered(), vertical[3]);
+            frame.render_widget(Paragraph::new(input.to_uppercase().clone()).centered(), mid_area[3]);
         })?;
 
         if event::poll(std::time::Duration::from_millis(16))? {
