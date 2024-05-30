@@ -73,5 +73,5 @@ fn yellow_or_not(c: char, return_elements: &Vec<Element>, solution: &str) -> boo
         }
     }
 
-    !(solution.contains(c) && exists_already)
+    solution.contains(c) && !exists_already
 }
