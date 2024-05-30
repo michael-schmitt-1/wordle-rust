@@ -1,22 +1,26 @@
-use std::io::{Result, stdout};
+use std::io::{stdout, Result};
 
 use crossterm::{
     event::{self, KeyCode, KeyEventKind},
-    ExecutableCommand,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    ExecutableCommand,
 };
 use rand::Rng;
-use ratatui::{
-    layout::{Constraint, Direction, Layout}, prelude::{CrosstermBackend, Terminal}, style::Style, text::Span, widgets::Paragraph,
-};
 use ratatui::style::Color;
 use ratatui::text::Line;
 use ratatui::widgets::Wrap;
+use ratatui::{
+    layout::{Constraint, Direction, Layout},
+    prelude::{CrosstermBackend, Terminal},
+    style::Style,
+    text::Span,
+    widgets::Paragraph,
+};
 
 use crate::game_logic::Element;
 
-mod word_list;
 mod game_logic;
+mod word_list;
 
 fn main() -> Result<()> {
     stdout().execute(EnterAlternateScreen)?;
@@ -42,36 +46,69 @@ fn main() -> Result<()> {
 
             let left_area = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints([Constraint::Max(1), Constraint::Max(1), Constraint::Min(6), Constraint::Max(1)])
+                .constraints([
+                    Constraint::Max(1),
+                    Constraint::Max(1),
+                    Constraint::Min(6),
+                    Constraint::Max(1),
+                ])
                 .split(hor[0]);
 
             let mid_area = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints([Constraint::Max(1), Constraint::Max(1), Constraint::Min(6), Constraint::Max(1)])
+                .constraints([
+                    Constraint::Max(1),
+                    Constraint::Max(1),
+                    Constraint::Min(6),
+                    Constraint::Max(1),
+                ])
                 .split(hor[1]);
 
             let right_area = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints([Constraint::Max(1), Constraint::Max(1), Constraint::Min(6), Constraint::Max(1)])
+                .constraints([
+                    Constraint::Max(1),
+                    Constraint::Max(1),
+                    Constraint::Min(6),
+                    Constraint::Max(1),
+                ])
                 .split(hor[2]);
 
             let _area = frame.size();
 
             // Header
-            frame.render_widget(Paragraph::new("").style(Style::new().bg(Color::Green)), left_area[0]);
-            frame.render_widget(Paragraph::new("").style(Style::new().bg(Color::Green)), right_area[0]);
-            frame.render_widget(Paragraph::new("WORDLE").centered().style(Style::new().bg(Color::Green)), mid_area[0]);
+            frame.render_widget(
+                Paragraph::new("").style(Style::new().bg(Color::Green)),
+                left_area[0],
+            );
+            frame.render_widget(
+                Paragraph::new("").style(Style::new().bg(Color::Green)),
+                right_area[0],
+            );
+            frame.render_widget(
+                Paragraph::new("WORDLE")
+                    .centered()
+                    .style(Style::new().bg(Color::Green)),
+                mid_area[0],
+            );
 
             // Body
             match game_state {
-                GameState::Running =>
-                    frame.render_widget(Paragraph::new(text_list.clone()).centered(), mid_area[2]),
+                GameState::Running => {
+                    frame.render_widget(Paragraph::new(text_list.clone()).centered(), mid_area[2])
+                }
                 GameState::Won => {
-                    let winning_text = format!("YOU'VE WON!\nThe word was: {}\nPress Enter to restart.", solution.to_uppercase());
+                    let winning_text = format!(
+                        "YOU'VE WON!\nThe word was: {}\nPress Enter to restart.",
+                        solution.to_uppercase()
+                    );
                     frame.render_widget(Paragraph::new(winning_text).centered(), mid_area[2]);
                 }
                 GameState::Lost => {
-                    let losing_text = format!("YOU'VE LOST!\nThe word was: {}\nPress Enter to restart.", solution.to_uppercase());
+                    let losing_text = format!(
+                        "YOU'VE LOST!\nThe word was: {}\nPress Enter to restart.",
+                        solution.to_uppercase()
+                    );
                     frame.render_widget(Paragraph::new(losing_text).centered(), mid_area[2]);
                 }
                 GameState::NotStarted => {
@@ -81,12 +118,20 @@ fn main() -> Result<()> {
                         Green means the letter is at the right place.\n\n\
                         Yellow means the letter is in the word but not in the right place.\n\n\
                         Press ESC to exit.";
-                    frame.render_widget(Paragraph::new(not_started_text).wrap(Wrap::default()).centered(), mid_area[2]);
+                    frame.render_widget(
+                        Paragraph::new(not_started_text)
+                            .wrap(Wrap::default())
+                            .centered(),
+                        mid_area[2],
+                    );
                 }
             };
-
             // Footer
-            let input_prompt: String = format!("Input: {}{}", input.to_uppercase().clone(), "_".repeat(5 - input.len()));
+            let input_prompt: String = format!(
+                "Input: {}{}",
+                input.to_uppercase().clone(),
+                "_".repeat(5 - input.len())
+            );
             frame.render_widget(Paragraph::new("").centered(), left_area[3]);
             frame.render_widget(Paragraph::new(input_prompt).centered(), mid_area[3]);
             frame.render_widget(Paragraph::new("").centered(), right_area[3]);
@@ -115,16 +160,20 @@ fn main() -> Result<()> {
                             text_list = vec![];
                             input = "".to_string();
                         }
-                        if input.len() < 5 { continue; }
+                        if input.len() < 5 {
+                            continue;
+                        }
 
-                        let elements = game_logic::check_word(
-                            input.to_string(),
-                            solution.to_string(),
-                        );
+                        let elements =
+                            game_logic::check_word(input.to_string(), solution.to_string());
                         text_list.push(list_to_span(&elements));
 
-                        if input == solution { game_state = GameState::Won }
-                        if text_list.len() > 5 { game_state = GameState::Lost }
+                        if input == solution {
+                            game_state = GameState::Won
+                        }
+                        if text_list.len() > 5 {
+                            game_state = GameState::Lost
+                        }
 
                         input = "".to_string();
                     }
@@ -153,8 +202,14 @@ enum GameState {
 }
 
 fn list_to_span(elements: &[Element]) -> Line<'static> {
-    let mut styled_chars: Vec<Span> = elements.iter()
-        .map(|e| Span::styled(e.c.to_string().to_uppercase(), Style::default().fg(e.status.color())))
+    let mut styled_chars: Vec<Span> = elements
+        .iter()
+        .map(|e| {
+            Span::styled(
+                e.c.to_string().to_uppercase(),
+                Style::default().fg(e.status.color()),
+            )
+        })
         .collect();
     styled_chars.push(Span::styled("\n".to_string(), Style::default()));
 

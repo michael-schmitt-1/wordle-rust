@@ -10,9 +10,9 @@ pub enum Status {
 impl Status {
     pub fn color(&self) -> Color {
         match self {
-            Status::Green => {Color::Green}
-            Status::Yellow => {Color::Yellow}
-            Status::Nothing => {Color::White}
+            Status::Green => Color::Green,
+            Status::Yellow => Color::Yellow,
+            Status::Nothing => Color::White,
         }
     }
 }
@@ -25,17 +25,18 @@ pub struct Element {
 
 impl Element {
     pub fn default() -> Self {
-        Self { c: '1', status: Status::Nothing }
+        Self {
+            c: '1',
+            status: Status::Nothing,
+        }
     }
 }
 
-
 pub fn check_word(word: String, solution: String) -> Vec<Element> {
-    
-    let mut return_word = vec![Element::default(); 5];
+    let mut return_elements = vec![Element::default(); 5];
     for (i, c) in word.chars().enumerate() {
         if c == solution.chars().nth(i).unwrap() {
-            return_word[i] = Element {
+            return_elements[i] = Element {
                 c,
                 status: Status::Green,
             };
@@ -43,10 +44,11 @@ pub fn check_word(word: String, solution: String) -> Vec<Element> {
     }
 
     for (i, c) in word.chars().enumerate() {
-        if return_word[i].status == Status::Green {
+        if return_elements[i].status == Status::Green {
             continue;
         }
-        return_word[i] = if solution.contains(c) {
+
+        return_elements[i] = if yellow_or_not(c, &return_elements, &solution) {
             Element {
                 c,
                 status: Status::Yellow,
@@ -58,5 +60,18 @@ pub fn check_word(word: String, solution: String) -> Vec<Element> {
             }
         }
     }
-    return_word
+
+    return_elements
+}
+
+fn yellow_or_not(c: char, return_elements: &Vec<Element>, solution: &str) -> bool {
+    let mut exists_already = false;
+    for element in return_elements {
+        if element.c == c {
+            exists_already = true;
+            break;
+        }
+    }
+
+    !(solution.contains(c) && exists_already)
 }
